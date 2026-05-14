@@ -29,7 +29,7 @@ AFFILIATE_TAG = os.getenv("AFFILIATE_TAG", "sumandealsx-21").strip()
 AMAZON_DOMAIN = os.getenv("AMAZON_DOMAIN", "www.amazon.in").strip().lower()
 
 # Your Render URL, e.g. https://amazon-link-bot.onrender.com
-BASE_URL = os.getenv("BASE_URL", "").strip().rstrip("/")
+BASE_URL = os.getenv("BASE_URL", "https://srk1.onrender.com").strip().rstrip("/")
 
 # Optional custom short domain. If empty, BASE_URL is used.
 SHORT_BASE_URL = os.getenv("SHORT_BASE_URL", BASE_URL).strip().rstrip("/")
