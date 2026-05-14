@@ -20,10 +20,10 @@ def _as_int_set(value: str) -> set[int]:
     return ids
 
 
-BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8655630907:AAF34iEzf3h8PO6RhgtHuDBmrFXZhtRARVk").strip()
 
 # Example India tracking ID: dealzbazaar0
-AFFILIATE_TAG = os.getenv("AFFILIATE_TAG", "dealzbazaar0").strip()
+AFFILIATE_TAG = os.getenv("AFFILIATE_TAG", "sumandealsx-21").strip()
 
 # Default output domain. Keep this as www.amazon.in for India Associates tags.
 AMAZON_DOMAIN = os.getenv("AMAZON_DOMAIN", "www.amazon.in").strip().lower()
@@ -45,7 +45,7 @@ DB_PATH = os.getenv("DB_PATH", "bot.db").strip()
 WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET", "").strip()
 
 # Optional comma-separated Telegram user IDs allowed to view /stats.
-ADMIN_IDS = _as_int_set(os.getenv("ADMIN_IDS", ""))
+ADMIN_IDS = _as_int_set(os.getenv("ADMIN_IDS", "7990200132"))
 
 # Optional: set this to enable automatic image descriptions.
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
