@@ -334,10 +334,60 @@ def process_message(message: dict[str, Any]) -> None:
     chat_id = chat.get("id")
     if chat_id is None:
         return
-        if conversions or has_photo:
-    caption_text = "\n\n".join(parts) if has_photo else converted_text.strip()
-    auto_post_to_channels(image_bytes if has_photo else None, caption_text)
 
+    user = message.get("from") or {}
+    message_id = message.get("message_id")
+    text = message.get("text") or message.get("caption") or ""
+    has_photo = bool(message.get("photo"))
+
+    # Handle commands first
+    if text.startswith("/") and handle_command(text, chat_id, user, message_id):
+        return
+
+    # Convert any Amazon links in text
+    converted_text, conversions = convert_text_links(text, chat_id, user)
+
+    # Image description
+    image_description = None
+    image_bytes = None
+    if has_photo and config.OPENAI_API_KEY:
+        file_id = message["photo"][-1].get("file_id")
+        image_bytes = get_telegram_file_bytes(file_id) if file_id else None
+        if image_bytes:
+            image_description = describe_image(image_bytes)
+
+    # Prepare message to send to the user
+    parts: list[str] = []
+    if has_photo:
+        if image_description:
+            parts.append(image_description)
+        if conversions:
+            parts.append(converted_text.strip())
+        if not parts:
+            if config.OPENAI_API_KEY:
+                parts.append("Image mila, lekin Amazon link nahi mila. Caption me Amazon product link bhejo.")
+            else:
+                parts.append(
+                    "Image mila. Auto description ke liye OPENAI_API_KEY set karo, "
+                    "aur affiliate link ke liye image caption me Amazon product link bhejo."
+                )
+        # Send photo with caption
+        if image_bytes:
+            send_photo(chat_id, image_bytes, caption="\n\n".join(parts))
+        else:
+            send_message(chat_id, "\n\n".join(parts), message_id)
+    elif conversions:
+        # Send converted text for links only
+        send_message(chat_id, converted_text.strip(), message_id)
+    elif text.strip():
+        send_message(chat_id, "Amazon link nahi mila. Product link bhejo, main affiliate/short link bana dunga.", message_id)
+    else:
+        send_message(chat_id, help_text(), message_id)
+
+    # ---------------- Auto-post to all configured channels ----------------
+    # Caption or message text to post
+    caption_text = "\n\n".join(parts) if has_photo else (converted_text.strip() if conversions else text.strip())
+    auto_post_to_channels(image_bytes if has_photo else None, caption_text)
     user = message.get("from") or {}
     message_id = message.get("message_id")
     text = message.get("text") or message.get("caption") or ""
