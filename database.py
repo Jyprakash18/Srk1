@@ -70,7 +70,7 @@ def init_db() -> None:
             """
         )
 
-        # --------- Add new auto_post_channels table ---------
+        # Auto-post channels table
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS auto_post_channels (
@@ -163,9 +163,24 @@ def get_stats() -> dict[str, int]:
         conversions = conn.execute("SELECT COUNT(*) AS c FROM conversions").fetchone()["c"]
         clicks = conn.execute("SELECT COALESCE(SUM(clicks), 0) AS c FROM short_links").fetchone()["c"]
         return {"links": int(links), "conversions": int(conversions), "clicks": int(clicks)}
-        def add_auto_post_channel(chat_id: int) -> None:
+
+
+# ---------------- Auto-post channels helpers ----------------
+
+def add_auto_post_channel(chat_id: int) -> None:
     with get_connection() as conn:
         conn.execute(
             "INSERT OR IGNORE INTO auto_post_channels(chat_id, added_at) VALUES (?, ?)",
             (chat_id, utc_now()),
         )
+
+
+def remove_auto_post_channel(chat_id: int) -> None:
+    with get_connection() as conn:
+        conn.execute("DELETE FROM auto_post_channels WHERE chat_id = ?", (chat_id,))
+
+
+def get_auto_post_channels() -> list[int]:
+    with get_connection() as conn:
+        rows = conn.execute("SELECT chat_id FROM auto_post_channels").fetchall()
+        return [row["chat_id"] for row in rows]
