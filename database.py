@@ -31,6 +31,7 @@ def utc_now() -> str:
 
 def init_db() -> None:
     with get_connection() as conn:
+        # Existing short_links table
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS short_links (
@@ -43,12 +44,15 @@ def init_db() -> None:
             )
             """
         )
+
         conn.execute(
             """
             CREATE INDEX IF NOT EXISTS idx_short_links_target_url
             ON short_links(target_url)
             """
         )
+
+        # Existing conversions table
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS conversions (
@@ -62,6 +66,17 @@ def init_db() -> None:
                 short_code TEXT,
                 asin TEXT,
                 created_at TEXT NOT NULL
+            )
+            """
+        )
+
+        # --------- Add new auto_post_channels table ---------
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS auto_post_channels (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                chat_id INTEGER NOT NULL UNIQUE,
+                added_at TEXT NOT NULL
             )
             """
         )
@@ -148,3 +163,18 @@ def get_stats() -> dict[str, int]:
         conversions = conn.execute("SELECT COUNT(*) AS c FROM conversions").fetchone()["c"]
         clicks = conn.execute("SELECT COALESCE(SUM(clicks), 0) AS c FROM short_links").fetchone()["c"]
         return {"links": int(links), "conversions": int(conversions), "clicks": int(clicks)}
+        def add_auto_post_channel(chat_id: int) -> None:
+    with get_connection() as conn:
+        conn.execute(
+            "INSERT OR IGNORE INTO auto_post_channels(chat_id, added_at) VALUES (?, ?)",
+            (chat_id, utc_now()),
+        )
+
+def remove_auto_post_channel(chat_id: int) -> None:
+    with get_connection() as conn:
+        conn.execute("DELETE FROM auto_post_channels WHERE chat_id = ?", (chat_id,))
+
+def get_auto_post_channels() -> list[int]:
+    with get_connection() as conn:
+        rows = conn.execute("SELECT chat_id FROM auto_post_channels").fetchall()
+        return [row["chat_id"] for row in rows]
