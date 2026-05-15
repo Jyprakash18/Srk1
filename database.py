@@ -169,12 +169,3 @@ def get_stats() -> dict[str, int]:
             "INSERT OR IGNORE INTO auto_post_channels(chat_id, added_at) VALUES (?, ?)",
             (chat_id, utc_now()),
         )
-
-def remove_auto_post_channel(chat_id: int) -> None:
-    with get_connection() as conn:
-        conn.execute("DELETE FROM auto_post_channels WHERE chat_id = ?", (chat_id,))
-
-def get_auto_post_channels() -> list[int]:
-    with get_connection() as conn:
-        rows = conn.execute("SELECT chat_id FROM auto_post_channels").fetchall()
-        return [row["chat_id"] for row in rows]
