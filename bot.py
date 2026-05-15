@@ -290,44 +290,37 @@ def help_text() -> str:
 
 def handle_command(text: str, chat_id: int, user: dict[str, Any] | None, message_id: int | None) -> bool:
     command = text.split()[0].split("@", 1)[0].lower()
+
     if command == "/start":
         send_message(chat_id, start_text(), message_id)
-        return True
+        return True  # ✅ Inside function
+
     if command == "/help":
         send_message(chat_id, help_text(), message_id)
-        return True
-    if command == "/stats":
-        if not config.ADMIN_IDS:
-            send_message(chat_id, "ADMIN_IDS env var set karo, phir /stats private rahega.", message_id)
-            return True
-        if not user or user.get("id") not in config.ADMIN_IDS:
-            send_message(chat_id, "Sorry, /stats sirf admin ke liye hai.", message_id)
-            return True
-        stats = database.get_stats()
-        send_message(
-            chat_id,
-            f"Stats:\nConversions: {stats['conversions']}\nShort links: {stats['links']}\nClicks: {stats['clicks']}",
-            message_id,
-        )
-        return True
-    return False
-if command == "/addchannel" and user.get("id") in config.ADMIN_IDS:
-    try:
-        new_chat_id = int(text.split()[1])
-        database.add_auto_post_channel(new_chat_id)
-        send_message(chat_id, f"Channel/group {new_chat_id} added for auto-posting.", message_id)
-    except (IndexError, ValueError):
-        send_message(chat_id, "Usage: /addchannel <chat_id>", message_id)
-    return True
+        return True  # ✅ Inside function
 
-if command == "/removechannel" and user.get("id") in config.ADMIN_IDS:
-    try:
-        remove_chat_id = int(text.split()[1])
-        database.remove_auto_post_channel(remove_chat_id)
-        send_message(chat_id, f"Channel/group {remove_chat_id} removed.", message_id)
-    except (IndexError, ValueError):
-        send_message(chat_id, "Usage: /removechannel <chat_id>", message_id)
-    return True
+    # ---- Add your new admin command here ----
+    if command == "/addchannel" and user and user.get("id") in config.ADMIN_IDS:
+        try:
+            new_chat_id = int(text.split()[1])
+            database.add_auto_post_channel(new_chat_id)
+            send_message(chat_id, f"Channel/group {new_chat_id} added for auto-posting.", message_id)
+            return True  # ✅ Inside function
+        except (IndexError, ValueError):
+            send_message(chat_id, "Usage: /addchannel <chat_id>", message_id)
+            return True  # ✅ Inside function
+
+    if command == "/removechannel" and user and user.get("id") in config.ADMIN_IDS:
+        try:
+            remove_chat_id = int(text.split()[1])
+            database.remove_auto_post_channel(remove_chat_id)
+            send_message(chat_id, f"Channel/group {remove_chat_id} removed.", message_id)
+            return True  # ✅ Inside function
+        except (IndexError, ValueError):
+            send_message(chat_id, "Usage: /removechannel <chat_id>", message_id)
+            return True  # ✅ Inside function
+
+    return False  # ✅ Always at the end of the function
 
 def process_message(message: dict[str, Any]) -> None:
     chat = message.get("chat") or {}
