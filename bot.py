@@ -311,13 +311,32 @@ def handle_command(text: str, chat_id: int, user: dict[str, Any] | None, message
         )
         return True
     return False
+if command == "/addchannel" and user.get("id") in config.ADMIN_IDS:
+    try:
+        new_chat_id = int(text.split()[1])
+        database.add_auto_post_channel(new_chat_id)
+        send_message(chat_id, f"Channel/group {new_chat_id} added for auto-posting.", message_id)
+    except (IndexError, ValueError):
+        send_message(chat_id, "Usage: /addchannel <chat_id>", message_id)
+    return True
 
+if command == "/removechannel" and user.get("id") in config.ADMIN_IDS:
+    try:
+        remove_chat_id = int(text.split()[1])
+        database.remove_auto_post_channel(remove_chat_id)
+        send_message(chat_id, f"Channel/group {remove_chat_id} removed.", message_id)
+    except (IndexError, ValueError):
+        send_message(chat_id, "Usage: /removechannel <chat_id>", message_id)
+    return True
 
 def process_message(message: dict[str, Any]) -> None:
     chat = message.get("chat") or {}
     chat_id = chat.get("id")
     if chat_id is None:
         return
+        if conversions or has_photo:
+    caption_text = "\n\n".join(parts) if has_photo else converted_text.strip()
+    auto_post_to_channels(image_bytes if has_photo else None, caption_text)
 
     user = message.get("from") or {}
     message_id = message.get("message_id")
